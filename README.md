@@ -12,5 +12,5 @@ You need to :
 
 then you can run
 ```bash
-ansible-playbook -i hosts  aws-cloudwatch/main.yml
+ansible-playbook -i hosts aws-cloudwatch/main.yml
 ```

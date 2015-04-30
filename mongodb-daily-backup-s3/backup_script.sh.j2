@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# backing up all the mongo dbs to s3
+# there should be a cron entry to run this once a day
+
+echo "$(date) start backup"
+
+file_name="$(date +%Y_%m_%d_%H-%M-%S_%Z)__$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-8};echo;)__.zip"
+
+mongodump
+
+zip -r $file_name dump
+
+s3cmd put $file_name s3://{{s3BackupBucket}}/mongodb/{{ansible_ssh_host}}/$file_name
+
+rm $file_name
+sudo rm -rf dump
+
+echo "$(date) end backup"

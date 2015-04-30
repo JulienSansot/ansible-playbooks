@@ -1,0 +1,26 @@
+---
+- hosts: all
+  remote_user: ubuntu
+  vars:
+   - homeFolder: /home/ubuntu
+   - postgresDbName: name-of-the-postgres-db
+   - s3BackupBucket: your-s3-backup-bucket
+   - s3BackupBucketAccessKey: aaaaaabbbbbbbbbbbcccccccccccc
+   - s3BackupBucketSecretKey: dddddddddddddeeeeeeeeeeefffffffff
+  tasks:
+   - name: Install s3cmd
+     sudo: yes
+     apt: pkg=s3cmd state=installed update_cache=true
+
+   - name: copy s3cmd config file
+     template: src=s3cfg.j2 dest={{homeFolder}}/.s3cfg
+
+   - name: Install zip
+     sudo: yes
+     apt: pkg=zip state=installed update_cache=true
+
+   - name: copy backup script
+     template: src=backup_script.sh.j2 dest={{homeFolder}}/postgres_backup_to_s3.sh mode=0755
+
+   - name: create cron command
+     cron: name="daily postgres backup to s3" special_time="daily" state="present" job="{{homeFolder}}/postgres_backup_to_s3.sh >> {{homeFolder}}/postgres_backup_to_s3.log"

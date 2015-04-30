@@ -17,3 +17,12 @@ Setup a cron task which will backup your mongo database to s3 every day.
 ansible-playbook -i hosts mongodb-daily-backup-s3/main.yml
 ```
 
+postgres-daily-backup-s3
+-------
+Setup a cron task which will backup your postgreSQL database to s3 every day.
+```
+ansible-playbook -i hosts postgres-daily-backup-s3/main.yml
+```
+
+
+

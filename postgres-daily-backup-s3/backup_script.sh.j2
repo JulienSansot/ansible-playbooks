@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# backing up the database to s3
+# there should be a cron entry to run this once a day
+
+echo "$(date) start backup"
+
+file_name="$(date +%Y_%m_%d_%H-%M-%S_%Z)__$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-8};echo;)__.bak"
+
+sudo -u postgres pg_dump -Fc {{postgresDbName}} > $file_name
+
+s3cmd put $file_name s3://{{s3BackupBucket}}/syncserver-postgres/{{ansible_ssh_host}}/{{postgresDbName}}/$file_name
+
+rm $file_name
+
+echo "$(date) end backup"

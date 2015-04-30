@@ -1,0 +1,36 @@
+---
+- hosts: all
+  remote_user: ubuntu
+  vars:
+   - installFolder: /home/ubuntu
+   - AwsCloudWatchAccessKeyId: aaaaaabbbbbbbbbbbcccccccccccc
+   - AwsCloudWatchSecretKey: dddddddddddeeeeeeeeefffffffff
+  tasks:
+   - name: Install depency packages
+     sudo: yes
+     apt: pkg={{ item }} state=installed update_cache=true
+     with_items:
+       - libdatetime-perl
+       - unzip
+       - libwww-perl
+       - libdatetime-perl
+
+   - stat: path={{installFolder}}/aws-scripts-mon
+     register: script_present
+
+   - name: get cloudwatch monitoring script
+     when: not script_present.stat.exists
+     get_url: url=http://aws-cloudwatch.s3.amazonaws.com/downloads/CloudWatchMonitoringScripts-1.2.1.zip dest={{installFolder}}
+
+   - name: unzip script
+     when: not script_present.stat.exists
+     unarchive: src=CloudWatchMonitoringScripts-1.2.1.zip dest={{installFolder}} copy=no
+
+   - name: delete zip file
+     file: path={{installFolder}}/CloudWatchMonitoringScripts-1.2.1.zip state=absent
+
+   - name: copy aws credentials file
+     template: src=awscreds.conf.j2 dest={{installFolder}}/aws-scripts-mon/awscreds.conf
+
+   - name: create cron command
+     cron: name="aws monitoring" minute="*/5" job="{{installFolder}}/aws-scripts-mon/mon-put-instance-data.pl --mem-util --swap-util --disk-space-util --disk-path=/ --from-cron"
